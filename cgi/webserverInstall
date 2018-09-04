@@ -1,0 +1,164 @@
+Installing, Configuring and Securing a Webserver:
+
+A web server (also known as a HTTP server) is a service that handles content 
+(most commonly web pages, but other types of documents as well) over to a client in a network.
+
+The web server available in RHEL 7 is version 2.4 of the Apache HTTP Server.
+
+
+STEP 1:  Installing Apache:
+
+Query:
+# rpm -q http*
+
+Download and Install:
+
+# yum update && yum install httpd
+
+Start the service:
+
+# systemctl start httpd.service
+
+Enable the service at bootlevel:
+
+# systemctl enable httpd.service
+
+Check and open the port:
+# netstat -tanp | grep LISTEN
+
+We have to open ports 80:
+
+# firewall-cmd --list-all
+# firewall-cmd --zone=public --add-port=80/tcp --permanent
+# firewall-cmd --reload
+
+Now, go to the browser and enter the IP of the server. 
+Note: You should see the test page.
+
+Configuring and Securing Apache Web Server:
+
+1. Required Packages : httpd*
+2. Configuration file: /etc/httpd/conf/httpd.conf
+3. Service Name      : httpd
+4. Port Number	     : 80
+
+
+Take the backup copy of the main configuration file:
+# cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.$(date +%Y%m%d)
+
+
+Now, open the configuration file using vi or vim editor:
+
+# vim /etc/httpd/conf/httpd.conf
+
+ServerRoot: the directory where the server�s configuration, error, 
+and log files are kept.
+
+Listen: instructs Apache to listen on specific IP address and / or ports.
+
+Include: allows the inclusion of other configuration files, which must exist. 
+Otherwise, the server will fail, as opposed to the IncludeOptional directive, 
+which is silently ignored if the specified configuration files do not exist.
+
+User and Group: the name of the user/group to run the httpd service as.
+
+DocumentRoot: The directory out of which Apache will serve your documents. 
+By default, all requests are taken from this directory, 
+but symbolic links and aliases may be used to point to other locations.
+
+ServerName: this directive sets the hostname (or IP address) and 
+port that the server uses to identify itself.
+
+
+
+To check the active connections and ports details:
+
+# netstat -tanp | grep LISTEN
+
+
+[root@webserver html]# ps -ef | grep 'apache'
+apache     6188   6187  0 15:04 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+apache     6189   6187  0 15:04 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+apache     6190   6187  0 15:04 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+apache     6191   6187  0 15:04 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+apache     6192   6187  0 15:04 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+
+
+***********************************************
+
+Now change the apache user and run the webserver:
+
+The first security measure will consist of creating a dedicated user and group 
+(i.e. fs/fs) to run the web server as and changing the default port to a higher one 
+(9000 in this case):
+
+
+Add the user & group:
+ 
+
+Note: The user Apache is running as should not have access to a shell:
+# usermod -s /sbin/nologin fs
+
+Now, go to configuration file and change below details:
+
+# vim /etc/httpd/conf/httpd.conf
+
+Listen 192.168.234.137:9000
+User fs
+Group fs
+ServerName 192.168.234.137:9000
+
+You can test the configuration file with:
+# apachectl configtest
+
+Note: If everything is OK, then restart the web server.
+
+# systemctl restart httpd
+
+Now, go to browser and test:
+
+http://192.168.234.137:9000/
+
+
+We have to enable the new port (and disable the old one) in the firewall:
+
+# firewall-cmd --zone=public --remove-port=80/tcp --permanent
+# firewall-cmd --zone=public --add-port=9000/tcp --permanent
+# firewall-cmd --reload
+
+
+# semanage fcontext -a -R -t httpd_sys_content_t /web '(/.*)?'
+
+# semanage fcontext -a -t httpd_sys_content_t /web/i.html'(/.*)?'
+
+# ls -ldZ /web
+
+# restorecon -v /web/
+
+# ls -ldZ /web
+
+# ps -ef | grep 'fs'
+fs         5899   5898  0 14:42 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+fs         5900   5898  0 14:42 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+fs         5901   5898  0 14:42 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+fs         5902   5898  0 14:42 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+fs         5903   5898  0 14:42 ?        00:00:00 /usr/sbin/httpd -DFOREGROUND
+
+
+Note that, due to SELinux policies, you can only use the ports returned by below command:
+# semanage port -l | grep -w '^http_port_t'
+http_port_t                    tcp      80, 81, 443, 488, 8008, 8009, 8443, 9000
+
+If you want to use another port (i.e. TCP port 8100), 
+you will have to add it to SELinux port context for the httpd service:
+
+# semanage port -a -t http_port_t -p tcp 8100
+
+[root@server0 ~]# netstat -tanp | grep LISTEN
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      2484/sendmail: acce
+tcp        0      0 0.0.0.0:445             0.0.0.0:*               LISTEN      2781/smbd
+tcp        0      0 0.0.0.0:2049            0.0.0.0:*               LISTEN      -
+tcp        0      0 192.168.234.101:9000    0.0.0.0:*               LISTEN      5572/httpd
+
+
+****************************************************************
