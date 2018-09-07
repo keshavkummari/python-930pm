@@ -1,0 +1,34 @@
+#!/usr/bin/python
+import smtplib
+gmail_user = 'enrique.abiel@gmail.com'  
+gmail_password = 'admin@12345'
+
+from_1=gmail_user
+
+to = ['durgaprasadravula@gmail.com','keshav.kummari@gmail.com','phaniraghavendra.ksv@gmail.com','bhaskar.mamillapalli@gmail.com','sudheermangamuri@gmail.com','sureshbabu1110@gmail.com','sravyabaru@gmail.com','nanicheruku@gmail.com']
+
+subject = 'Sending Email using GMAIL Mail Server-KeshavKummari'
+
+body = 'Hi, \n  This is a Email Test \n Thanks, \nRoot.'
+
+email_text = """\  
+From: %s  
+To: %s  
+Subject: %s
+
+%s
+""" % (from_1, ", ".join(to), subject, body)
+
+try:  
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.ehlo()
+    server.login(gmail_user, gmail_password)
+    server.sendmail(from_1, to, email_text)
+    server.close()
+    print ('Email sent!')
+except:  
+    print ('Something went wrong...')
+
+
+
+
