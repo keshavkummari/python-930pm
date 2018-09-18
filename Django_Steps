@@ -1,0 +1,51 @@
+# Server Side Scripting: 
+
+Python-3.6.0
+
+# Client Side Scripting:
+HTML
+CSS
+
+# Database : 
+MySql/Mariadb 
+
+# WebFramework:
+
+Django
+
+# python --version
+
+# pip --version
+
+# pip install Django
+
+# python -m django --version
+
+Creating a Django Project:
+
+# django-admin startproject mysite
+
+/Users/keshavkummari/mysite
+$ ls -lrt
+-rwxr-xr-x  1 keshavkummari  staff     804 Sep 18 22:08 manage.py
+drwxr-xr-x  7 keshavkummari  staff     238 Sep 18 22:17 mysite
+
+$ ls -lrt mysite/
+-rw-r--r--  1 keshavkummari  staff   390 Sep 18 22:08 wsgi.py
+-rw-r--r--  1 keshavkummari  staff   763 Sep 18 22:08 urls.py
+-rw-r--r--  1 keshavkummari  staff  3096 Sep 18 22:08 settings.py
+-rw-r--r--  1 keshavkummari  staff     0 Sep 18 22:08 __init__.py
+
+
+Start Development Server:
+# python manage.py runserver
+# python manage.py runserver 8080
+# python manage.py runserver 0.0.0.0:8080
+# python manage.py runserver 0:8000
+
+Creating a App:
+# python manage.py startapp home
+
+
+http://127.0.0.1:8000/
+
